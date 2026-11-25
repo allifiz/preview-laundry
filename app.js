@@ -1,0 +1,10 @@
+const $=id=>document.getElementById(id);
+const services={regular:{price:8000,unit:'kg',name:'Cuci & setrika'},express:{price:15000,unit:'kg',name:'Laundry express'},shoes:{price:30000,unit:'pasang',name:'Cuci sepatu'}};
+const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n);
+const today=new Date();const localDate=new Date(today.getTime()-today.getTimezoneOffset()*60000).toISOString().slice(0,10);$('date').min=localDate;$('date').value=localDate;
+function estimate(){const s=services[$('service').value];$('unit').textContent=s.unit;$('total').textContent=rupiah(s.price*Math.max(0,Number($('qty').value)||0));}
+$('service').addEventListener('change',estimate);$('qty').addEventListener('input',estimate);estimate();
+document.querySelectorAll('[data-service]').forEach(b=>b.addEventListener('click',()=>{$('service').value=b.dataset.service;estimate();$('pesan').scrollIntoView({behavior:'smooth'});}));
+let orders={};try{orders=JSON.parse(localStorage.getItem('huma-demo-orders')||'{}')||{};}catch{}
+$('order').addEventListener('submit',e=>{e.preventDefault();const code='HUMA-'+Date.now().toString(36).toUpperCase();const s=services[$('service').value];orders[code]={service:s.name,total:rupiah(s.price*Number($('qty').value)),date:$('date').value};try{localStorage.setItem('huma-demo-orders',JSON.stringify(orders));}catch{}$('receipt').textContent='Pesanan simulasi berhasil! Kode: '+code+'. Tidak ada penjemputan nyata.';$('code').value=code;});
+$('track').addEventListener('submit',e=>{e.preventDefault();const code=$('code').value.trim().toUpperCase();const order=Object.hasOwn(orders,code)?orders[code]:null;const demo=code==='HUMA-DEMO';$('status').textContent=demo?'HUMA-DEMO • Simulasi: Cucian sedang diproses. Tahapan: Pesanan diterima → Dijemput → Diproses → Selesai.':order?'Pesanan '+code+' • '+order.service+' • '+order.total+' • Pickup '+order.date+' • Status: Menunggu penjemputan (simulasi).':'Kode tidak ditemukan. Coba HUMA-DEMO atau buat pesanan baru.';});
